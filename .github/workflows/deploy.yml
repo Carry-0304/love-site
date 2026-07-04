@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main, master]
+    paths:
+      - "love-site/**"
 
 permissions:
   contents: write
@@ -12,6 +14,9 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./love-site
     steps:
       - uses: actions/checkout@v4
 
@@ -19,6 +24,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: love-site/package-lock.json
 
       - run: npm ci
       - run: npm run build
@@ -27,4 +33,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
+          publish_dir: ./love-site/out
