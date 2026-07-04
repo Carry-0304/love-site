@@ -5,6 +5,7 @@ on:
     branches: [main, master]
     paths:
       - "love-site/**"
+      - ".github/workflows/**"
 
 permissions:
   contents: read
