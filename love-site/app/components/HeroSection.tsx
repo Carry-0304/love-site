@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 // ---- CONFIG: Replace these ----
 const GIRLFRIEND_NAME = "胡鑫玥";
-const TOGETHER_SINCE = new Date("2024-01-01"); // Change to your anniversary date
+const TOGETHER_SINCE = new Date("2026-06-15"); // 我们在一起的日期
 // ------------------------------
 
 export default function HeroSection() {
@@ -35,7 +35,7 @@ export default function HeroSection() {
   };
 
   // Animate each character of a headline
-  const headlineChars = "在这无垠宇宙里，你是我唯一的引力".split("");
+  const headlineChars = "送给全世界最可爱最聪明的~".split("");
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20 overflow-hidden">
@@ -167,7 +167,7 @@ export default function HeroSection() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.1 }}
         >
-          我的世界因你而转动，每一天都绕着你的轨道运行 🌍
+          你是我每天醒来第一个想见的人 💫
         </motion.p>
       </motion.div>
 
@@ -205,8 +205,10 @@ export default function HeroSection() {
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
       >
-        <p className="text-xs text-rose-dried/50 tracking-widest font-sans">
-          向下探索我们的故事
+        <p className="text-xs text-rose-dried/50 tracking-wider font-sans text-center max-w-xs leading-relaxed">
+          计时器没有骗人<br />
+          但它的算法错了——<br />
+          我想我们相爱了无数个时间线
         </p>
         <div className="w-5 h-8 rounded-full border border-rose-dried/30 flex items-start justify-center p-1">
           <motion.div

@@ -74,38 +74,57 @@ export default function ToastNotification() {
     }, 2800);
   }, []);
 
+  // Helper: skip interactive elements
+  const isInteractive = (el: HTMLElement) =>
+    el.closest("button") ||
+    el.closest("input") ||
+    el.closest("a") ||
+    el.closest("textarea") ||
+    el.closest("select");
+
+  // Helper: debounce check
+  const isTooFast = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 400) return true;
+    lastTapRef.current = now;
+    return false;
+  };
+
+  // Helper: vibrate if available
+  const vibrate = () => {
+    if (navigator.vibrate) {
+      try {
+        navigator.vibrate([25, 60, 25]);
+      } catch {
+        // Vibration not available
+      }
+    }
+  };
+
+  // ──── Click toast (desktop) ────
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      // Only on desktop sized screens
+      if (window.innerWidth <= 1024) return;
+      if (isInteractive(e.target as HTMLElement)) return;
+      if (isTooFast()) return;
+
+      addToast(e.clientX, e.clientY);
+    };
+
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [addToast]);
+
   // ──── Vibration + Toast on touch (mobile) ────
   useEffect(() => {
     const handleTouchEnd = (e: TouchEvent) => {
       // Only on mobile/tablet sized screens
       if (window.innerWidth > 1024) return;
+      if (isInteractive(e.target as HTMLElement)) return;
+      if (isTooFast()) return;
 
-      // Skip interactive elements
-      const target = e.target as HTMLElement;
-      if (
-        target.closest("button") ||
-        target.closest("input") ||
-        target.closest("a") ||
-        target.closest("textarea") ||
-        target.closest("select")
-      ) {
-        return;
-      }
-
-      const now = Date.now();
-      // Debounce: 400ms between toasts
-      if (now - lastTapRef.current < 400) return;
-      lastTapRef.current = now;
-
-      // Vibration API — gentle pattern
-      if (navigator.vibrate) {
-        try {
-          // A gentle "heartbeat" pattern: short-short-pause-short
-          navigator.vibrate([25, 60, 25]);
-        } catch {
-          // Vibration not available
-        }
-      }
+      vibrate();
 
       const touch = e.changedTouches[0];
       if (touch) {

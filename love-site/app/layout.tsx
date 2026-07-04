@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://lovely.my-girlfriend.app"),
+  metadataBase: new URL("https://love-site-xi.vercel.app"),
   title: "胡鑫玥 💕 专属空间",
   description: "一个只属于你的浪漫角落，记录我们的每一个心动瞬间",
   icons: {

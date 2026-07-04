@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
+import type { FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ---- CONFIG ----
 const GIRLFRIEND_NAME = "胡鑫玥";
 const PASSWORD = "1229"; // Her birthday MMDD format
-const PASSWORD_HINT = "提示：密码是你的生日 (MMDD格式) 💡";
+const PASSWORD_HINT = "提示：密码是你的生日 (A B C D格式) ";
 // Voice message URLs — replace with your real audio files
 const VOICE_MESSAGES = [
   { id: "1", title: "早安，宝贝 ☀️", src: "", duration: "0:15" },
@@ -48,8 +49,9 @@ function TextRain({ isActive, name }: { isActive: boolean; name: string }) {
     const phrases = [
       "我爱你", "I ❤️ U", "想你", "宝贝", "honey",
       "❤️", "miss you", "forever", "我的唯一",
-      "love you", "你是光", "心动", "💕",
-    ];
+      "love you", "你是光", "心动", "💕","QRK是爹", "hxy小宝贝儿"
+
+  ];
 
     // Initialize with scattered drops
     dropsRef.current = Array.from({ length: 55 }, () => ({
@@ -204,7 +206,7 @@ export default function LoveMailbox() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [attempts, setAttempts] = useState(0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (password === PASSWORD) {
       setIsUnlocked(true);
@@ -242,7 +244,7 @@ export default function LoveMailbox() {
         transition={{ duration: 0.8 }}
       >
         <h2 className="text-4xl md:text-5xl font-script text-gradient-love mb-3">
-          私密信箱 💌
+          QRK 💞 hxy的秘密空间
         </h2>
         <p className="text-sm text-rose-dried/60 tracking-widest font-sans">
           只有你能打开的秘密空间

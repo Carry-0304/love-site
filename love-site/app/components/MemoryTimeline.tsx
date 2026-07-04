@@ -17,55 +17,61 @@ interface Memory {
 const memories: Memory[] = [
   {
     id: "first-meet",
-    date: "2023.06.15",
+    date: "2026.05.14",
     title: "初遇",
-    subtitle: "那天阳光正好",
+    subtitle: "GOD!你让我等太久了！！！",
     description:
-      "六月的阳光穿过梧桐叶的缝隙，在你发梢上跳舞。你推开咖啡馆的门，风铃响了——那一刻我还不知道，这扇门推开的是我整个余生。",
-    emoji: "☀️",
+      "茫茫歌海里千千万万首歌，我唯独在那个夜晚点开了和你相遇的契机。素未谋面的两个人，靠着一首首喜欢的歌慢慢靠近。感谢网易云那晚的奇妙相遇，我对你非常感兴趣！",
+    emoji: "💫",
+    imageUrl: "/chuyu.jpg",
   },
   {
     id: "heartbeat",
-    date: "2023.08.20",
-    title: "心动",
-    subtitle: "你笑起来真好看",
+    date: "2026.05.15~06.15",
+    title: "暧昧",
+    subtitle: "我跟你聊天从来不是为了聊天，我是为了让你习惯我的存在，        直到你离不开~",
     description:
-      "你回头冲我笑的那一秒，周围的喧嚣全部静音了。你的眼睛弯成两道月牙，里面有星星在闪。从那一刻起，我就知道——我完了，彻底沦陷了。",
+      "那段暧昧，你以为是你情我愿的试探？\n" +
+        "不。是我设的局，你心甘情愿跳了进来。\n" +
+        "而现在——你永远别想出去了。",
     emoji: "💓",
+    imageUrl: "/aimei.jpg",
   },
   {
     id: "first-date",
-    date: "2023.09.14",
+    date: "2026.06.14",
     title: "第一次约会",
-    subtitle: "手心全是汗",
+    subtitle: "我心里只有一个声音：这个女人，我要定了",
     description:
-      "江边的晚风温柔得不像话，我们坐在长椅上，中间隔着两杯奶茶的距离。你忽然靠过来指着天上的星星，而我全程只看得见你侧脸的轮廓映在月光里。",
+      "江边的晚风温柔得不像话，我们坐在江边上，中间隔着一张纸的距离。我们喝着酒听着歌，聊了很久很久，我看着你的侧脸你的眼睛，心里面在盘算得到你。",
     emoji: "🌙",
+    imageUrl: "/jiangbian.jpg",
   },
   {
     id: "confession",
-    date: "2023.10.01",
+    date: "2026.06.15",
     title: "告白",
-    subtitle: "最勇敢的一天",
+    subtitle: "最幸福的一天",
     description:
-      "烟花在头顶炸开的时候，我用尽全部勇气说了那四个字。你愣了一下，然后红着脸轻轻点头。漫天的烟花都不及你那一刻万分之一的美。",
+      "你问过我为什么选那天表白，因为那天你的发丝的香气，你的笑很认真，而我再也不想用“朋友”的身份和你相处。说出口的那一刻，手在抖，心却在说：终于，I catch u!",
     emoji: "💌",
+    imageUrl: "/yiwei.jpg",
   },
   {
     id: "together",
-    date: "2024.01.01",
-    title: "相守",
-    subtitle: "从遇见你的第一次心跳算起",
+    date: "henceforth",
+    title: "相爱",
+    subtitle: "从这一天起",
     description:
-      "新年的第一缕阳光照进房间时，我握紧了你的手。此后的每一个日出日落，我都只想和你一起看。从初遇到心动，从牵手到白头，我们的故事，才刚开始写第一章。",
+      "重庆很好玩，你这个导游我很满意！什么都比不上我们相拥热吻那一刻。从这一天起，我不再是一个人了——我们的故事，正式开始。往后的每一个春夏秋冬，都想和你一起慢慢走。",
     emoji: "💍",
+    imageUrl: "/jiangbian.jpg",
   },
 ];
 // ----------------------------------------
 
 export default function MemoryTimeline() {
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef(0);
 

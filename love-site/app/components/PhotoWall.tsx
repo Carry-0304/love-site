@@ -12,12 +12,12 @@ interface Photo {
 }
 
 const photos: Photo[] = [
-  { id: "1", src: "", caption: "第一次牵手的那天", date: "2023.09.14" },
-  { id: "2", src: "", caption: "你做的第一顿饭", date: "2023.10.20" },
-  { id: "3", src: "", caption: "一起看的那场电影", date: "2023.11.05" },
-  { id: "4", src: "", caption: "圣诞节的拥抱", date: "2023.12.25" },
-  { id: "5", src: "", caption: "新年的第一个吻", date: "2024.01.01" },
-  { id: "6", src: "", caption: "你生日那天的惊喜", date: "2024.03.08" },
+  { id: "1", src: "", caption: "第一次牵手的那天", date: "" },
+  { id: "2", src: "", caption: "你做的第一顿饭", date: "" },
+  { id: "3", src: "", caption: "一起看的那场电影", date: "" },
+  { id: "4", src: "", caption: "圣诞节的拥抱", date: "" },
+  { id: "5", src: "", caption: "新年的第一个吻", date: "" },
+  { id: "6", src: "", caption: "你生日那天的惊喜", date: "" },
 ];
 // -------------------------------------------
 
