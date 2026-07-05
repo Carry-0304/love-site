@@ -193,10 +193,10 @@ export default function MusicPlayer() {
         const ps = particlesRef.current;
         for (const p of ps) {
           const cx = CARD_W / 2, cy = CARD_H / 2;
-          p.tx = p.x + (p.x - cx) * 3.5 + (Math.random() - 0.5) * 120;
-          p.ty = p.y + (p.y - cy) * 3.5 + (Math.random() - 0.5) * 120;
-          p.vx = (Math.random() - 0.5) * 5;
-          p.vy = (Math.random() - 0.5) * 5;
+          p.tx = p.x + (p.x - cx) * 1.8 + (Math.random() - 0.5) * 60;
+          p.ty = p.y + (p.y - cy) * 1.8 + (Math.random() - 0.5) * 60;
+          p.vx = (Math.random() - 0.5) * 2.5;
+          p.vy = (Math.random() - 0.5) * 2.5;
         }
       } else if (scatterRef.current === 1) {
         updateTargets(LYRICS[lyricIdxRef.current]?.text || "", getPhase(
@@ -242,42 +242,42 @@ export default function MusicPlayer() {
           switch (ph) {
             case "prelude":
               // Slow drift, breathing pulse
-              p.x += Math.sin(frame * 0.02 + p.y * 0.01) * 0.15;
-              p.y += Math.cos(frame * 0.02 + p.x * 0.01) * 0.1;
+              p.x += Math.sin(frame * 0.02 + p.y * 0.01) * 0.08;
+              p.y += Math.cos(frame * 0.02 + p.x * 0.01) * 0.05;
               p.alpha = 0.15 + Math.sin(frame * 0.03) * 0.08;
               p.hue = 345; p.sat = 60; p.light = 70;
               break;
             case "verse1":
               // Candle flicker
-              p.x += (Math.random() - 0.5) * 0.4;
-              p.y += (Math.random() - 0.5) * 0.3 - 0.1;
+              p.x += (Math.random() - 0.5) * 0.2;
+              p.y += (Math.random() - 0.5) * 0.15 - 0.05;
               p.hue = 340; p.sat = 95; p.light = 82;
               break;
             case "rising":
               // Rose gold, silk wave
-              p.x += Math.sin(p.y * 0.05 + frame * 0.04) * 0.5;
-              p.y += Math.cos(p.x * 0.04 + frame * 0.03) * 0.3;
+              p.x += Math.sin(p.y * 0.05 + frame * 0.04) * 0.25;
+              p.y += Math.cos(p.x * 0.04 + frame * 0.03) * 0.15;
               p.hue = 20 + Math.sin(frame * 0.01) * 10; // warm gold shift
               p.sat = 85; p.light = 80;
               break;
             case "chorus":
               // Explosive, fast flow
-              p.x += Math.sin(p.y * 0.06 + frame * 0.06) * 0.7;
-              p.y += Math.cos(p.x * 0.05 + frame * 0.05) * 0.5;
+              p.x += Math.sin(p.y * 0.06 + frame * 0.06) * 0.35;
+              p.y += Math.cos(p.x * 0.05 + frame * 0.05) * 0.25;
               p.hue = 330 + Math.sin(frame * 0.05) * 15;
               p.sat = 100; p.light = 88;
               break;
             case "bridge":
               // Slow dissolve, white snow
-              p.vy -= 0.02;
-              p.x += Math.sin(frame * 0.015 + p.y * 0.01) * 0.2;
+              p.vy -= 0.01;
+              p.x += Math.sin(frame * 0.015 + p.y * 0.01) * 0.1;
               p.hue = 0; p.sat = 0; p.light = 95;
               p.alpha *= 0.998;
               break;
             case "outro":
               // Embers rising, fading
-              p.vy -= 0.04;
-              p.x += (Math.random() - 0.5) * 0.3;
+              p.vy -= 0.02;
+              p.x += (Math.random() - 0.5) * 0.15;
               p.alpha *= 0.994;
               p.hue = 20 + Math.random() * 20;
               p.sat = 90; p.light = 60 + Math.random() * 20;
