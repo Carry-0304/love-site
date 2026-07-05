@@ -39,9 +39,6 @@ export default function Home() {
           <FloatingParticles />
           <CherryBlossoms />
 
-          {/* --- Background music + lyrics --- */}
-          <MusicPlayer />
-
           {/* --- Cursor star trail (desktop only) --- */}
           <StarTrail />
 
@@ -133,6 +130,9 @@ export default function Home() {
           </footer>
         </motion.main>
       )}
+
+      {/* Music player — outside motion.main so fixed positioning works */}
+      {isLoaded && <MusicPlayer />}
     </>
   );
 }
