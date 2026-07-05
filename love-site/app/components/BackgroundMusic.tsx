@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
 
 interface Props {
   src: string;
@@ -9,32 +8,32 @@ interface Props {
 
 export default function BackgroundMusic({ src }: Props) {
   const [playing, setPlaying] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [error, setError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const initDoneRef = useRef(false);
 
-  // Initialize audio on first user interaction anywhere on the page
-  useEffect(() => {
-    const initAudio = () => {
-      if (initialized) return;
-      const audio = audioRef.current;
-      if (!audio) return;
+  const initAndPlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!initDoneRef.current) {
       audio.volume = 0.35;
       audio.loop = true;
-      setInitialized(true);
-      // Try to play
-      audio.play().then(() => setPlaying(true)).catch(() => {});
-    };
+      initDoneRef.current = true;
+    }
 
-    document.addEventListener("click", initAudio, { once: true });
-    document.addEventListener("touchstart", initAudio, { once: true });
+    audio.play().then(() => {
+      setPlaying(true);
+      setError(false);
+    }).catch((e) => {
+      console.warn("Audio play failed:", e.message);
+      setPlaying(false);
+      setError(true);
+    });
+  }, []);
 
-    return () => {
-      document.removeEventListener("click", initAudio);
-      document.removeEventListener("touchstart", initAudio);
-    };
-  }, [initialized]);
-
-  const toggle = useCallback(() => {
+  const toggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -42,43 +41,52 @@ export default function BackgroundMusic({ src }: Props) {
       audio.pause();
       setPlaying(false);
     } else {
-      // Init if not yet
-      if (!initialized) {
-        audio.volume = 0.35;
-        audio.loop = true;
-        setInitialized(true);
-      }
-      audio.play().then(() => setPlaying(true)).catch(() => {
-        setPlaying(false);
-      });
+      initAndPlay();
     }
-  }, [playing, initialized]);
+  }, [playing, initAndPlay]);
+
+  // Auto-init on first user interaction
+  useEffect(() => {
+    const handler = () => {
+      if (initDoneRef.current && playing) return;
+      initAndPlay();
+    };
+    document.addEventListener("click", handler, { once: true });
+    document.addEventListener("touchstart", handler, { once: true });
+    return () => {
+      document.removeEventListener("click", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [initAndPlay, playing]);
+
+  // Handle audio load error
+  const handleError = useCallback(() => {
+    setError(true);
+    setPlaying(false);
+  }, []);
 
   return (
     <>
-      <audio ref={audioRef} src={src} preload="auto" loop />
+      <audio ref={audioRef} src={src} preload="auto" onError={handleError} />
 
       {/* Floating music button */}
-      <motion.button
+      <button
         onClick={toggle}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-white/70 backdrop-blur-md border border-rose-dried/20 shadow-lg shadow-rose-dried/10 flex items-center justify-center text-xl cursor-pointer hover:shadow-xl hover:shadow-rose-dried/20 hover:scale-105 transition-all"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.5, duration: 0.6 }}
-        title={playing ? "暂停音乐" : "播放音乐"}
+        className="fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full bg-white/80 backdrop-blur-md border-2 border-rose-dried/30 shadow-xl flex items-center justify-center text-2xl cursor-pointer hover:scale-110 active:scale-95 hover:shadow-2xl hover:border-rose-deep/50 transition-all duration-300"
+        style={{ boxShadow: "0 4px 30px rgba(181,101,118,0.25)" }}
+        title={error ? "音频加载失败" : playing ? "暂停音乐 🎵" : "播放音乐 🎵"}
       >
-        <motion.span
-          animate={playing ? { rotate: 360 } : { rotate: 0 }}
-          transition={
-            playing
-              ? { duration: 3, repeat: Infinity, ease: "linear" }
-              : { duration: 0.3 }
-          }
-          style={{ display: "inline-block" }}
+        <span
+          className={playing ? "animate-spin" : ""}
+          style={{
+            display: "inline-block",
+            animationDuration: playing ? "3s" : "0s",
+            opacity: error ? 0.4 : 1,
+          }}
         >
-          {playing ? "🎵" : "🔇"}
-        </motion.span>
-      </motion.button>
+          {error ? "🚫" : playing ? "🎵" : "🎶"}
+        </span>
+      </button>
     </>
   );
 }
