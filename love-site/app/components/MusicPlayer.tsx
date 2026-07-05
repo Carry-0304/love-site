@@ -120,21 +120,19 @@ export default function MusicPlayer() {
             fontWeight: 900,
             fontSize: phase === "prelude" ? 16 : phase === "chorus" ? 24 : phase === "outro" ? 20 : 22,
             fontStyle: phase === "chorus" ? "italic" : "normal",
+            color: hueByPhase[phase],
             textAlign: "center" as const,
             lineHeight: 1.4,
             margin: 0,
             letterSpacing: "0.08em",
-            // Gradient sweep left→right
-            background: `linear-gradient(90deg, ${hueByPhase[phase]} 0%, ${hueByPhase[phase]} 35%, #ffffff 50%, ${hueByPhase[phase]} 65%, ${hueByPhase[phase]} 100%)`,
-            backgroundSize: "300% 100%",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            color: "transparent",
+            textShadow: [
+              `0 0 10px ${hueByPhase[phase]}`,
+              `0 0 30px ${hueByPhase[phase]}cc`,
+              `0 0 60px ${hueByPhase[phase]}66`,
+            ].join(", "),
             opacity: textVisible ? 1 : 0,
             transform: textVisible ? "translateY(0)" : "translateY(12px)",
             transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
-            animation: "sweepGlow 4s ease-in-out infinite",
           } as React.CSSProperties}>
             {displayText || " "}
           </p>
@@ -142,10 +140,6 @@ export default function MusicPlayer() {
       </div>
 
       <style>{`
-        @keyframes sweepGlow {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
         @keyframes ambientPulse {
           0%, 100% { opacity: 0.5; transform: scale(1); }
           50% { opacity: 0.8; transform: scale(1.15); }
