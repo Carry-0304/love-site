@@ -3,47 +3,16 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import LYRICS from "./lyrics";
 
-// ---- Types ----
-interface Particle {
-  x: number; y: number;
-  vx: number; vy: number;
-  size: number; alpha: number; hue: number;
-  life: number; maxLife: number;
-}
-
-interface Petal {
-  x: number; y: number;
-  size: number;
-  speedY: number; speedX: number;
-  rotation: number; rotSpeed: number;
-  alpha: number;
-  swayAmp: number; swayPhase: number;
-}
-
-// ---- Config ----
-const PETAL_COUNT = 20;
-const PARTICLE_COUNT = 150;
-
 export default function MusicPlayer() {
   const [playing, setPlaying] = useState(false);
   const [lyricIdx, setLyricIdx] = useState(0);
-  const [isMobile, setIsMobile] = useState(true); // safe default
+  const [show, setShow] = useState(true); // always visible
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const petalsRef = useRef<Petal[]>([]);
-  const particlesRef = useRef<Particle[]>([]);
-  const animRef = useRef(0);
   const initDoneRef = useRef(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animRef = useRef(0);
 
-  // ---- Detect mobile ----
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  // ---- Audio init ----
+  // ---- Audio ----
   const initAndPlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -52,249 +21,167 @@ export default function MusicPlayer() {
       audio.loop = true;
       initDoneRef.current = true;
     }
-    audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    audio.play().then(() => setPlaying(true)).catch(() => {});
   }, []);
 
   const toggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    e.preventDefault();
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) {
-      audio.pause();
-      setPlaying(false);
-    } else {
-      initAndPlay();
-    }
+    if (playing) { audio.pause(); setPlaying(false); }
+    else initAndPlay();
   }, [playing, initAndPlay]);
 
-  // Auto-init on first interaction anywhere on page
   useEffect(() => {
-    const handler = () => {
-      if (initDoneRef.current && playing) return;
-      initAndPlay();
-    };
-    document.addEventListener("click", handler, { once: true });
-    document.addEventListener("touchstart", handler, { once: true });
+    const h = () => { if (!initDoneRef.current || !playing) initAndPlay(); };
+    document.addEventListener("click", h, { once: true });
+    document.addEventListener("touchstart", h, { once: true });
     return () => {
-      document.removeEventListener("click", handler);
-      document.removeEventListener("touchstart", handler);
+      document.removeEventListener("click", h);
+      document.removeEventListener("touchstart", h);
     };
   }, [initAndPlay, playing]);
 
-  // ---- Lyrics sync with audio ----
+  // ---- Lyrics sync ----
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const update = () => {
+    const u = () => {
       const t = audio.currentTime;
-      let idx = 0;
-      for (let i = LYRICS.length - 1; i >= 0; i--) {
-        if (t >= LYRICS[i].time) { idx = i; break; }
+      let i = 0;
+      for (let j = LYRICS.length - 1; j >= 0; j--) {
+        if (t >= LYRICS[j].time) { i = j; break; }
       }
-      setLyricIdx(idx);
+      setLyricIdx(i);
     };
-    audio.addEventListener("timeupdate", update);
-    return () => audio.removeEventListener("timeupdate", update);
+    audio.addEventListener("timeupdate", u);
+    return () => audio.removeEventListener("timeupdate", u);
   }, []);
 
-  // ---- Init petals ----
-  useEffect(() => {
-    const w = isMobile ? 260 : 340;
-    const h = isMobile ? 120 : 160;
-    petalsRef.current = Array.from({ length: PETAL_COUNT }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      size: 4 + Math.random() * 7,
-      speedY: 0.15 + Math.random() * 0.45,
-      speedX: -0.2 + Math.random() * 0.4,
-      rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.02,
-      alpha: 0.3 + Math.random() * 0.5,
-      swayAmp: 0.2 + Math.random() * 0.5,
-      swayPhase: Math.random() * Math.PI * 2,
-    }));
-  }, [isMobile]);
-
-  // ---- Init floating particles ----
-  useEffect(() => {
-    const w = isMobile ? 260 : 340;
-    const h = isMobile ? 120 : 160;
-    particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3 - 0.1,
-      size: 1 + Math.random() * 2.5,
-      alpha: 0.2 + Math.random() * 0.5,
-      hue: 330 + Math.random() * 30,
-      life: Math.random() * 300,
-      maxLife: 200 + Math.random() * 300,
-    }));
-  }, [isMobile]);
-
-  // ---- Canvas animation: petals + floating stardust ----
+  // ---- Petal canvas background ----
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    const w = isMobile ? 260 : 340;
-    const h = isMobile ? 120 : 160;
-    const dpr = window.devicePixelRatio || 1;
+    const w = 300, h = 150, dpr = 2;
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     const ctx = canvas.getContext("2d")!;
     ctx.scale(dpr, dpr);
 
+    // Generate petals
+    const petals = Array.from({ length: 18 }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      size: 4 + Math.random() * 6,
+      sy: 0.2 + Math.random() * 0.4,
+      sx: -0.15 + Math.random() * 0.3,
+      rot: Math.random() * 360, rs: (Math.random() - 0.5) * 1.2,
+      alpha: 0.3 + Math.random() * 0.4,
+      sw: 0.2 + Math.random() * 0.5, sp: Math.random() * Math.PI * 2,
+    }));
+
+    // Generate stardust
+    const dust = Array.from({ length: 80 }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.4, vy: -(0.1 + Math.random() * 0.3),
+      size: 1 + Math.random() * 2,
+      alpha: 0.2 + Math.random() * 0.5,
+      hue: 335 + Math.random() * 20,
+    }));
+
     const animate = () => {
       ctx.clearRect(0, 0, w, h);
 
-      // ---- Floating stardust particles ----
-      const particles = particlesRef.current;
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        p.x += p.vx + Math.sin(p.y * 0.02) * 0.2;
-        p.y += p.vy + Math.cos(p.x * 0.02) * 0.1;
-        p.life--;
-
-        if (p.life <= 0) {
-          p.x = Math.random() * w;
-          p.y = h + 10;
-          p.life = p.maxLife;
-          p.alpha = 0.2 + Math.random() * 0.5;
-        }
-        if (p.y < -15) { p.y = h + 10; p.x = Math.random() * w; }
-        if (p.x < -15) p.x = w + 15;
-        if (p.x > w + 15) p.x = -15;
-
-        const fade = p.life < 30 ? p.life / 30 : p.life > p.maxLife - 30 ? (p.maxLife - p.life) / 30 : 1;
-        const alpha = p.alpha * Math.max(0, Math.min(1, fade));
-        if (alpha < 0.02) continue;
-
-        // Glow
-        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-        grad.addColorStop(0, `hsla(${p.hue}, 100%, 85%, ${alpha})`);
-        grad.addColorStop(0.5, `hsla(${p.hue}, 90%, 70%, ${alpha * 0.4})`);
-        grad.addColorStop(1, `hsla(${p.hue}, 80%, 60%, 0)`);
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Core
-        ctx.fillStyle = `hsla(${p.hue}, 100%, 92%, ${alpha})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
-        ctx.fill();
+      // Stardust
+      for (const d of dust) {
+        d.x += d.vx + Math.sin(d.y * 0.02) * 0.15;
+        d.y += d.vy;
+        if (d.y < -10) { d.y = h + 10; d.x = Math.random() * w; }
+        if (d.x < -10) d.x = w + 10;
+        if (d.x > w + 10) d.x = -10;
+        const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.size * 3);
+        g.addColorStop(0, `hsla(${d.hue}, 100%, 85%, ${d.alpha})`);
+        g.addColorStop(0.5, `hsla(${d.hue}, 90%, 70%, ${d.alpha * 0.3})`);
+        g.addColorStop(1, `hsla(${d.hue}, 80%, 60%, 0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.size * 3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `hsla(${d.hue}, 100%, 92%, ${d.alpha})`;
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.size * 0.5, 0, Math.PI * 2); ctx.fill();
       }
 
-      // ---- Cherry blossom petals falling ----
-      const petals = petalsRef.current;
-      for (let i = 0; i < petals.length; i++) {
-        const pt = petals[i];
-        pt.y += pt.speedY;
-        pt.x += pt.speedX + Math.sin(pt.y * 0.03 + pt.swayPhase) * pt.swayAmp;
-        pt.rotation += pt.rotSpeed;
-
-        if (pt.y > h + 20) { pt.y = -15; pt.x = Math.random() * w; }
-        if (pt.x < -15) pt.x = w + 15;
-        if (pt.x > w + 15) pt.x = -15;
-
+      // Petals
+      for (const p of petals) {
+        p.y += p.sy;
+        p.x += p.sx + Math.sin(p.y * 0.03 + p.sp) * p.sw;
+        p.rot += p.rs;
+        if (p.y > h + 20) { p.y = -15; p.x = Math.random() * w; }
+        if (p.x < -15) p.x = w + 15;
+        if (p.x > w + 15) p.x = -15;
         ctx.save();
-        ctx.translate(pt.x, pt.y);
-        ctx.rotate(pt.rotation);
-        ctx.globalAlpha = pt.alpha;
-
-        // Petal
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.globalAlpha = p.alpha;
         ctx.fillStyle = "#FFB6C1";
         ctx.beginPath();
-        ctx.ellipse(0, 0, pt.size, pt.size * 0.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
-
-        // Vein
-        ctx.strokeStyle = "rgba(255,255,255,0.25)";
-        ctx.lineWidth = 0.3;
-        ctx.beginPath();
-        ctx.moveTo(0, -pt.size * 0.35);
-        ctx.lineTo(0, pt.size * 0.35);
-        ctx.stroke();
-
         ctx.restore();
       }
 
-      // Vignette
-      const vignette = ctx.createRadialGradient(w / 2, h / 2, w * 0.3, w / 2, h / 2, w * 0.75);
-      vignette.addColorStop(0, "transparent");
-      vignette.addColorStop(1, "rgba(255,182,193,0.05)");
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, w, h);
-
       animRef.current = requestAnimationFrame(animate);
     };
-
     animRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animRef.current);
-  }, [isMobile]);
+  }, []);
 
-  // ---- Derived ----
-  const lyricText = LYRICS[lyricIdx]?.text || "";
-  const w = isMobile ? 260 : 340;
-  const h = isMobile ? 120 : 160;
+  const current = LYRICS[lyricIdx]?.text || "🎵  ~  ♪  ~";
 
   return (
     <>
       <audio ref={audioRef} src="/love-site/audio/bg-music.mp3" preload="auto" loop />
 
-      {/* ──── Lyrics display ──── */}
+      {/* ── Lyrics card ── */}
       <div
         className="fixed z-[9998]"
-        style={{ bottom: isMobile ? "78px" : "88px", right: isMobile ? "8px" : "20px" }}
+        style={{ bottom: 88, right: 20 }}
       >
         <div
-          className="relative rounded-2xl overflow-hidden border border-rose-dried/20"
+          className="relative rounded-2xl overflow-hidden"
           style={{
-            width: w,
-            height: h,
-            background: "radial-gradient(ellipse at center, rgba(255,182,193,0.1) 0%, rgba(181,101,118,0.05) 40%, rgba(20,10,20,0.3) 100%)",
-            boxShadow: "0 8px 40px rgba(181,101,118,0.15), inset 0 0 80px rgba(255,182,193,0.08)",
+            width: 300, height: 150,
+            background: "linear-gradient(135deg, rgba(255,192,203,0.12) 0%, rgba(181,101,118,0.08) 50%, rgba(255,182,193,0.06) 100%)",
+            border: "1px solid rgba(181,101,118,0.2)",
+            boxShadow: "0 8px 40px rgba(181,101,118,0.12), inset 0 0 60px rgba(255,182,193,0.04)",
           }}
         >
-          {/* Background canvas: particles + petals */}
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0"
-            style={{ width: "100%", height: "100%" }}
-          />
+          {/* Petal canvas */}
+          <canvas ref={canvasRef} className="absolute inset-0" style={{ width: 300, height: 150 }} />
 
-          {/* Foreground text: readable lyrics */}
-          <div className="absolute inset-0 flex items-center justify-center px-4">
+          {/* Lyrics text */}
+          <div className="absolute inset-0 flex items-center justify-center px-6">
             <p
-              className="font-script text-center leading-relaxed select-none pointer-events-none"
               style={{
-                fontSize: isMobile ? "18px" : "24px",
+                fontFamily: '"Dancing Script", "Noto Serif SC", serif',
+                fontSize: 24,
                 color: "#FFB6C1",
-                textShadow:
-                  "0 0 20px rgba(255,107,138,0.6), 0 0 40px rgba(255,107,138,0.3), 0 0 80px rgba(255,107,138,0.15), 0 2px 4px rgba(181,101,118,0.3)",
-                filter: "drop-shadow(0 0 8px rgba(255,182,193,0.5))",
+                textAlign: "center",
+                textShadow: "0 0 25px rgba(255,107,138,0.7), 0 0 50px rgba(255,107,138,0.3), 0 0 80px rgba(255,107,138,0.15)",
+                lineHeight: 1.5,
               }}
             >
-              {lyricText}
+              {current}
             </p>
           </div>
         </div>
       </div>
 
-      {/* ──── Play/Pause button ──── */}
+      {/* ── Play button ── */}
       <button
         onClick={toggle}
         className="fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full bg-white/80 backdrop-blur-md border-2 border-rose-dried/30 flex items-center justify-center text-2xl cursor-pointer hover:scale-110 active:scale-95 transition-all duration-300"
         style={{ boxShadow: "0 4px 30px rgba(181,101,118,0.25)" }}
-        title={playing ? "暂停音乐 🎵" : "播放音乐 🎵"}
+        title={playing ? "暂停 🎵" : "播放 🎵"}
       >
-        <span
-          className={playing ? "animate-spin" : ""}
-          style={{ display: "inline-block", animationDuration: playing ? "3s" : "0s" }}
-        >
+        <span className={playing ? "animate-spin" : ""} style={{ display: "inline-block", animationDuration: playing ? "3s" : "0s" }}>
           {playing ? "🎵" : "🎶"}
         </span>
       </button>
