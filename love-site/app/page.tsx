@@ -133,11 +133,6 @@ export default function Home() {
 
       {/* Music player — outside motion.main so fixed positioning works */}
       {isLoaded && <MusicPlayer />}
-
-      {/* TEST: verify fixed positioning works */}
-      <div style={{ position: "fixed", bottom: 20, left: 20, zIndex: 99999, background: "white", padding: "10px 20px", borderRadius: 8, border: "2px solid red", fontSize: 14, color: "black" }}>
-        TEST - 歌词测试
-      </div>
     </>
   );
 }
