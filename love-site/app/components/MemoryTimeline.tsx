@@ -45,7 +45,7 @@ const memories: Memory[] = [
     description:
       "江边的晚风温柔得不像话，我们坐在江边上，中间隔着一张纸的距离。我们喝着酒听着歌，聊了很久很久，我看着你的侧脸你的眼睛，心里面在盘算得到你。",
     emoji: "🌙",
-    imageUrl: "/jiangbian.jpg",
+    imageUrl: "/yuehui.jpg",
   },
   {
     id: "confession",
@@ -55,7 +55,7 @@ const memories: Memory[] = [
     description:
       "你问过我为什么选那天表白，因为那天你的发丝的香气，你的笑很认真，而我再也不想用“朋友”的身份和你相处。说出口的那一刻，手在抖，心却在说：终于，I catch u!",
     emoji: "💌",
-    imageUrl: "/yiwei.jpg",
+    imageUrl: "/gaobai.jpg",
   },
   {
     id: "together",
@@ -65,7 +65,7 @@ const memories: Memory[] = [
     description:
       "重庆很好玩，你这个导游我很满意！什么都比不上我们相拥热吻那一刻。从这一天起，我不再是一个人了——我们的故事，正式开始。往后的每一个春夏秋冬，都想和你一起慢慢走。",
     emoji: "💍",
-    imageUrl: "/jiangbian.jpg",
+    imageUrl: "/xiangai.jpg",
   },
 ];
 // ----------------------------------------
