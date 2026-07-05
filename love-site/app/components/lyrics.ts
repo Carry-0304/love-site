@@ -6,7 +6,7 @@ export interface LyricLine {
 }
 
 const LYRICS: LyricLine[] = [
-  { time: 0, text: "🎵  ~  ♪  ~" },
+  { time: 0, text: "🎵  ~  ♪  ~  ♫" },
   { time: 13.936, text: "丘比特 惩罚我 让你去砍我的树" },
   { time: 21.742, text: "丘比特 惩罚我" },
   { time: 27.742, text: "丘比特 惩罚我" },
