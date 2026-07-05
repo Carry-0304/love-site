@@ -99,14 +99,10 @@ export default function MusicPlayer() {
     <>
       <audio ref={audioRef} src="/love-site/audio/bg-music.mp3" preload="auto" loop />
 
-      {/* ──── Lyrics center screen ──── */}
-      <div style={{
-        position: "fixed", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        zIndex: 9998, pointerEvents: "none",
-      }}>
+      {/* ──── Lyrics: transparent, borderless, text only ──── */}
+      <div style={{ position: "fixed", bottom: 88, right: 20, zIndex: 9998 }}>
         <div style={{
-          position: "relative", width: 380, height: 180,
+          position: "relative", width: 340, height: 170,
           display: "flex", alignItems: "center", justifyContent: "center",
           padding: "0 20px",
         }}>
