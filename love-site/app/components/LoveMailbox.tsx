@@ -921,7 +921,7 @@ export default function LoveMailbox() {
                           animate={{ opacity: 1 }}
                           transition={{ delay: 3 }}
                         >
-                          —— 你的专属管理员
+                          —— 你的Only One---Mr.Qin
                         </motion.p>
                       </motion.div>
                     </motion.div>
