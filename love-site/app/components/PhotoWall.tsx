@@ -12,12 +12,12 @@ interface Photo {
 }
 
 const photos: Photo[] = [
-  { id: "1", src: "/love-site/chuyu.jpg", caption: "奇怪的默契游戏", date: "2026.05" },
-  { id: "2", src: "/love-site/aimei.jpg", caption: "一起逛超市", date: "2026.05" },
-  { id: "3", src: "/love-site/yuehui.jpg", caption: "游乐场的尖叫", date: "2026.06" },
-  { id: "4", src: "/love-site/gaobai.jpg", caption: "模仿对方的口头禅", date: "2026.06" },
-  { id: "5", src: "/love-site/xiangai.jpg", caption: "一起出去旅游", date: "2026.07" },
-  { id: "6", src: "/love-site/gaobai.jpg", caption: "你生日那天的惊喜", date: "2026.07" },
+  { id: "1", src: "", caption: "奇怪的默契游戏", date: "2026.05" },
+  { id: "2", src: "", caption: "一起逛超市", date: "2026.05" },
+  { id: "3", src: "", caption: "游乐场的尖叫", date: "2026.06" },
+  { id: "4", src: "", caption: "模仿对方的口头禅", date: "2026.06" },
+  { id: "5", src: "", caption: "一起出去旅游", date: "2026.07" },
+  { id: "6", src: "", caption: "你生日那天的惊喜", date: "2026.07" },
 ];
 // -------------------------------------------
 
