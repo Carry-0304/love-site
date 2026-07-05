@@ -11,6 +11,7 @@ import CherryBlossoms from "./components/CherryBlossoms";
 import FloatingParticles from "./components/FloatingParticles";
 import StarTrail from "./components/StarTrail";
 import ToastNotification from "./components/ToastNotification";
+import BackgroundMusic from "./components/BackgroundMusic";
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -37,6 +38,9 @@ export default function Home() {
           {/* --- Background ambient effects --- */}
           <FloatingParticles />
           <CherryBlossoms />
+
+          {/* --- Background music --- */}
+          <BackgroundMusic src="/audio/bg-music.mp3" />
 
           {/* --- Cursor star trail (desktop only) --- */}
           <StarTrail />
