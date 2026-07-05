@@ -28,12 +28,13 @@ interface Particle {
   hue: number; sat: number; light: number;
 }
 
-// ---- Text pixel sampler ----
-function sampleText(
+// ---- Text EDGE pixel sampler (only contour, not fill) ----
+function sampleTextEdges(
   offCtx: CanvasRenderingContext2D, offW: number, offH: number,
   text: string, fontSize: number, italic: boolean
 ) {
   offCtx.clearRect(0, 0, offW, offH);
+  // Match the DOM text overlay font exactly
   offCtx.font = `${italic ? "italic " : ""}bold ${fontSize}px "SimHei","Heiti SC","Microsoft YaHei","PingFang SC",sans-serif`;
   offCtx.fillStyle = "#fff";
   offCtx.textAlign = "center";
@@ -41,11 +42,37 @@ function sampleText(
   offCtx.fillText(text, offW / 2, offH / 2);
 
   const img = offCtx.getImageData(0, 0, offW, offH);
+  const w = offW, h = offH;
+  const data = img.data;
+  const isText = (x: number, y: number) => {
+    if (x < 0 || x >= w || y < 0 || y >= h) return false;
+    return data[(y * w + x) * 4 + 3] > 60;
+  };
+
   const pixels: { x: number; y: number }[] = [];
-  for (let y = 0; y < offH; y += 3) {
-    for (let x = 0; x < offW; x += 3) {
-      if (img.data[(y * offW + x) * 4 + 3] > 50) {
-        pixels.push({ x: x / 2, y: y / 2 });
+  const step = 2; // dense sampling
+  for (let y = 0; y < h; y += step) {
+    for (let x = 0; x < w; x += step) {
+      if (!isText(x, y)) continue;
+      // Edge detection: text pixel with at least one non-text neighbor
+      const neighbors = [
+        isText(x - step, y), isText(x + step, y),
+        isText(x, y - step), isText(x, y + step),
+        isText(x - step, y - step), isText(x + step, y - step),
+        isText(x - step, y + step), isText(x + step, y + step),
+      ];
+      if (neighbors.some(n => !n)) {
+        pixels.push({ x: x / 2, y: y / 2 }); // scale to display canvas
+      }
+    }
+  }
+  // Also add some interior fill pixels for density
+  if (pixels.length < 200) {
+    for (let y = 0; y < h; y += step * 2) {
+      for (let x = 0; x < w; x += step * 2) {
+        if (isText(x, y)) {
+          pixels.push({ x: x / 2, y: y / 2 });
+        }
       }
     }
   }
@@ -168,14 +195,15 @@ export default function MusicPlayer() {
 
     const updateTargets = (text: string, p: Phase) => {
       const italic = p === "chorus";
-      const fs = text.length > 15 ? 24 : text.length > 8 ? 28 : 34;
-      targetPositions = sampleText(offCtx, off.width, off.height, text, fs, italic);
+      const fs = text.length > 15 ? 20 : text.length > 8 ? 24 : 28;
+      targetPositions = sampleTextEdges(offCtx, off.width, off.height, text, fs, italic);
       if (targetPositions.length === 0) return;
       const ps = particlesRef.current;
       for (let i = 0; i < ps.length; i++) {
         const tp = targetPositions[i % targetPositions.length];
-        ps[i].tx = tp.x + (Math.random() - 0.5) * 1.5;
-        ps[i].ty = tp.y + (Math.random() - 0.5) * 1.5;
+        // Tightly embed on text edge — minimal jitter
+        ps[i].tx = tp.x + (Math.random() - 0.5) * 0.6;
+        ps[i].ty = tp.y + (Math.random() - 0.5) * 0.6;
       }
     };
 
@@ -213,8 +241,8 @@ export default function MusicPlayer() {
       for (const p of ps) {
         const dx = p.tx - p.x;
         const dy = p.ty - p.y;
-        const spring = inScatter ? 0.018 : 0.07;
-        const damp = inScatter ? 0.87 : 0.83;
+        const spring = inScatter ? 0.018 : 0.12;
+        const damp = inScatter ? 0.87 : 0.78;
         p.vx += dx * spring;
         p.vy += dy * spring;
         p.vx *= damp;
@@ -226,37 +254,37 @@ export default function MusicPlayer() {
         if (!inScatter) {
           switch (ph) {
             case "prelude":
-              p.x += Math.sin(frame * 0.02 + p.y * 0.01) * 0.08;
-              p.y += Math.cos(frame * 0.02 + p.x * 0.01) * 0.05;
-              p.alpha = 0.15 + Math.sin(frame * 0.03) * 0.08;
+              p.x += Math.sin(frame * 0.02 + p.y * 0.01) * 0.03;
+              p.y += Math.cos(frame * 0.02 + p.x * 0.01) * 0.02;
+              p.alpha = 0.2 + Math.sin(frame * 0.03) * 0.06;
               p.hue = 345; p.sat = 60; p.light = 70;
               break;
             case "verse1":
-              p.x += (Math.random() - 0.5) * 0.2;
-              p.y += (Math.random() - 0.5) * 0.15 - 0.05;
+              p.x += (Math.random() - 0.5) * 0.06;
+              p.y += (Math.random() - 0.5) * 0.05;
               p.hue = 340; p.sat = 95; p.light = 82;
               break;
             case "rising":
-              p.x += Math.sin(p.y * 0.05 + frame * 0.04) * 0.25;
-              p.y += Math.cos(p.x * 0.04 + frame * 0.03) * 0.15;
+              p.x += Math.sin(p.y * 0.05 + frame * 0.04) * 0.08;
+              p.y += Math.cos(p.x * 0.04 + frame * 0.03) * 0.05;
               p.hue = 20 + Math.sin(frame * 0.01) * 10;
               p.sat = 85; p.light = 80;
               break;
             case "chorus":
-              p.x += Math.sin(p.y * 0.06 + frame * 0.06) * 0.35;
-              p.y += Math.cos(p.x * 0.05 + frame * 0.05) * 0.25;
+              p.x += Math.sin(p.y * 0.06 + frame * 0.06) * 0.1;
+              p.y += Math.cos(p.x * 0.05 + frame * 0.05) * 0.07;
               p.hue = 330 + Math.sin(frame * 0.05) * 15;
               p.sat = 100; p.light = 88;
               break;
             case "bridge":
-              p.vy -= 0.01;
-              p.x += Math.sin(frame * 0.015 + p.y * 0.01) * 0.1;
+              p.vy -= 0.005;
+              p.x += Math.sin(frame * 0.015 + p.y * 0.01) * 0.04;
               p.hue = 0; p.sat = 0; p.light = 95;
               p.alpha *= 0.998;
               break;
             case "outro":
-              p.vy -= 0.02;
-              p.x += (Math.random() - 0.5) * 0.15;
+              p.vy -= 0.01;
+              p.x += (Math.random() - 0.5) * 0.06;
               p.alpha *= 0.994;
               p.hue = 20 + Math.random() * 20;
               p.sat = 90; p.light = 60 + Math.random() * 20;
