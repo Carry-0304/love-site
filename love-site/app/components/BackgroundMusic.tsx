@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface Props {
@@ -9,7 +9,30 @@ interface Props {
 
 export default function BackgroundMusic({ src }: Props) {
   const [playing, setPlaying] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio on first user interaction anywhere on the page
+  useEffect(() => {
+    const initAudio = () => {
+      if (initialized) return;
+      const audio = audioRef.current;
+      if (!audio) return;
+      audio.volume = 0.35;
+      audio.loop = true;
+      setInitialized(true);
+      // Try to play
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    };
+
+    document.addEventListener("click", initAudio, { once: true });
+    document.addEventListener("touchstart", initAudio, { once: true });
+
+    return () => {
+      document.removeEventListener("click", initAudio);
+      document.removeEventListener("touchstart", initAudio);
+    };
+  }, [initialized]);
 
   const toggle = useCallback(() => {
     const audio = audioRef.current;
@@ -19,34 +42,21 @@ export default function BackgroundMusic({ src }: Props) {
       audio.pause();
       setPlaying(false);
     } else {
+      // Init if not yet
+      if (!initialized) {
+        audio.volume = 0.35;
+        audio.loop = true;
+        setInitialized(true);
+      }
       audio.play().then(() => setPlaying(true)).catch(() => {
-        // Browser blocked autoplay — user needs to interact again
         setPlaying(false);
       });
     }
-  }, [playing]);
-
-  // Attempt autoplay on first user interaction with the page
-  const tryAutoPlay = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio || playing) return;
-    audio.volume = 0.35;
-    audio.loop = true;
-    audio.play().then(() => setPlaying(true)).catch(() => {});
-  }, [playing]);
+  }, [playing, initialized]);
 
   return (
     <>
-      {/* Invisible audio element */}
       <audio ref={audioRef} src={src} preload="auto" loop />
-
-      {/* First-interaction autoplay trigger */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        onClick={tryAutoPlay}
-        onTouchStart={tryAutoPlay}
-        style={{ zIndex: -1 }}
-      />
 
       {/* Floating music button */}
       <motion.button

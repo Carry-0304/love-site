@@ -40,7 +40,7 @@ export default function Home() {
           <CherryBlossoms />
 
           {/* --- Background music --- */}
-          <BackgroundMusic src="/audio/bg-music.mp3" />
+          <BackgroundMusic src="/love-site/audio/bg-music.mp3" />
 
           {/* --- Cursor star trail (desktop only) --- */}
           <StarTrail />
