@@ -36,7 +36,7 @@ export default function PhotoWall() {
         transition={{ duration: 0.8 }}
       >
         <h2 className="text-4xl md:text-5xl font-script text-gradient-love mb-3">
-          回忆墙
+            回忆墙
         </h2>
         <p className="text-sm text-rose-dried/60 tracking-widest font-sans">
           定格每一个有你的瞬间
