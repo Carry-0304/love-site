@@ -75,15 +75,25 @@ export default function MemoryTimeline() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef(0);
 
-  const handleMemoryClick = (memory: Memory) => {
-    if (Math.abs(scrollRef.current?.scrollLeft ?? 0 - dragStartRef.current) < 10) {
-      setSelectedMemory(memory);
+  const clickFlag = useRef(false);
+
+  const handleDown = () => {
+    clickFlag.current = true;
+    if (scrollRef.current) {
+      dragStartRef.current = scrollRef.current.scrollLeft;
     }
   };
 
-  const handleDragStart = () => {
-    if (scrollRef.current) {
-      dragStartRef.current = scrollRef.current.scrollLeft;
+  const handleMove = () => {
+    if (clickFlag.current && scrollRef.current) {
+      const moved = Math.abs(scrollRef.current.scrollLeft - dragStartRef.current);
+      if (moved > 5) clickFlag.current = false;
+    }
+  };
+
+  const handleMemoryClick = (memory: Memory) => {
+    if (clickFlag.current) {
+      setSelectedMemory(memory);
     }
   };
 
@@ -131,8 +141,10 @@ export default function MemoryTimeline() {
             scrollbarWidth: "none",
             msOverflowStyle: "none",
           }}
-          onMouseDown={handleDragStart}
-          onTouchStart={handleDragStart}
+          onMouseDown={handleDown}
+          onTouchStart={handleDown}
+          onTouchMove={handleMove}
+          onScroll={handleMove}
         >
           {memories.map((memory, index) => (
             <motion.div
