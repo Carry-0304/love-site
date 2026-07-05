@@ -45,6 +45,7 @@ function sampleText(offCtx: CanvasRenderingContext2D, offW: number, offH: number
 export default function MusicPlayer() {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [currentText, setCurrentText] = useState(LYRICS[0]?.text || "🎵");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const offscreenRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Particle[]>([]);
@@ -91,6 +92,7 @@ export default function MusicPlayer() {
       }
       if (i !== lyricIdxRef.current) {
         lyricIdxRef.current = i;
+        setCurrentText(LYRICS[i]?.text || "🎵");
         scatterRef.current = 30; // ~0.5s scatter phase at 60fps
       }
     };
@@ -255,6 +257,21 @@ export default function MusicPlayer() {
         }}>
           {/* Particle lyrics canvas */}
           <canvas ref={canvasRef} style={{ position:"absolute", inset:0, width:CARD_W, height:CARD_H }} />
+
+          {/* Text overlay — guaranteed readable */}
+          <div style={{ position:"absolute", inset:0, display:"flex",
+            alignItems:"center", justifyContent:"center", padding:"0 16px", pointerEvents:"none" }}>
+            <p style={{
+              fontFamily:'"SimHei","Heiti SC","Microsoft YaHei","PingFang SC",sans-serif',
+              fontWeight:900, fontSize:22,
+              color:"#FF8FAB",
+              textAlign:"center" as const, lineHeight:1.4, margin:0,
+              textShadow:"0 0 20px rgba(255,107,138,0.6), 0 0 40px rgba(255,143,171,0.35), 0 2px 4px rgba(181,101,118,0.4)",
+              letterSpacing: "0.05em",
+            }}>
+              {currentText}
+            </p>
+          </div>
 
           {/* Glossy highlight */}
           <div style={{ position:"absolute", top:0, left:0, right:0, height:"35%",
