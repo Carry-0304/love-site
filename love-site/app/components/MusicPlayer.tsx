@@ -114,26 +114,27 @@ export default function MusicPlayer() {
             filter: "blur(20px)",
             animation: "ambientPulse 3s ease-in-out infinite",
           }} />
-          <p className="lyrics-text" style={{
+          <p style={{
             position: "relative",
             fontFamily: '"SimHei","Heiti SC","Microsoft YaHei","PingFang SC",sans-serif',
             fontWeight: 900,
             fontSize: phase === "prelude" ? 16 : phase === "chorus" ? 24 : phase === "outro" ? 20 : 22,
             fontStyle: phase === "chorus" ? "italic" : "normal",
-            color: hueByPhase[phase],
             textAlign: "center" as const,
             lineHeight: 1.4,
             margin: 0,
             letterSpacing: "0.08em",
-            // Multi-layer glow
-            textShadow: [
-              `0 0 10px ${hueByPhase[phase]}`,
-              `0 0 30px ${hueByPhase[phase]}cc`,
-              `0 0 60px ${hueByPhase[phase]}66`,
-            ].join(", "),
+            // Gradient sweep left→right
+            background: `linear-gradient(90deg, ${hueByPhase[phase]} 0%, ${hueByPhase[phase]} 35%, #ffffff 50%, ${hueByPhase[phase]} 65%, ${hueByPhase[phase]} 100%)`,
+            backgroundSize: "300% 100%",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            color: "transparent",
             opacity: textVisible ? 1 : 0,
             transform: textVisible ? "translateY(0)" : "translateY(12px)",
             transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+            animation: "sweepGlow 4s ease-in-out infinite",
           } as React.CSSProperties}>
             {displayText || " "}
           </p>
@@ -141,57 +142,13 @@ export default function MusicPlayer() {
       </div>
 
       <style>{`
+        @keyframes sweepGlow {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
         @keyframes ambientPulse {
           0%, 100% { opacity: 0.5; transform: scale(1); }
           50% { opacity: 0.8; transform: scale(1.15); }
-        }
-        @keyframes sweepLight {
-          0%   { left: -80px; opacity: 0; }
-          15%  { opacity: 0.9; }
-          30%  { opacity: 0.3; }
-          50%  { left: 350px; opacity: 0; }
-          100% { left: 350px; opacity: 0; }
-        }
-        @keyframes sweepLight2 {
-          0%   { left: -80px; opacity: 0; }
-          25%  { opacity: 0; }
-          40%  { opacity: 0.7; }
-          55%  { opacity: 0.2; }
-          75%  { left: 350px; opacity: 0; }
-          100% { left: 350px; opacity: 0; }
-        }
-        .lyrics-text {
-          position: relative;
-        }
-        .lyrics-text::after {
-          content: "";
-          position: absolute;
-          top: -10px;
-          left: -80px;
-          width: 60px;
-          height: calc(100% + 20px);
-          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 20%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 80%, transparent 100%);
-          border-radius: 50%;
-          filter: blur(8px);
-          pointer-events: none;
-          z-index: 0;
-          animation: sweepLight 2.5s ease-in-out infinite;
-          mix-blend-mode: overlay;
-        }
-        .lyrics-text::before {
-          content: "";
-          position: absolute;
-          top: -5px;
-          left: -80px;
-          width: 30px;
-          height: calc(100% + 10px);
-          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
-          border-radius: 50%;
-          filter: blur(2px);
-          pointer-events: none;
-          z-index: 0;
-          animation: sweepLight2 2.5s ease-in-out infinite;
-          mix-blend-mode: screen;
         }
       `}</style>
 
