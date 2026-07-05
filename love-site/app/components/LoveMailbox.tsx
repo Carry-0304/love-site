@@ -485,33 +485,21 @@ const LOVE_NOTES = [
   "未来很远，但有你就不怕。🗺️",
 ];
 
-// Storage key for tracking which notes have been shown
-const STORAGE_KEY = "love-notes-shown";
+/** Get day of year in Beijing time (UTC+8), 1–365 */
+function getBeijingDayOfYear(): number {
+  const now = new Date();
+  // Convert to Beijing time: UTC + 8
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const beijing = new Date(utc + 8 * 3600000);
+  const start = new Date(beijing.getFullYear(), 0, 0);
+  const diff = beijing.getTime() - start.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
 
-/** Pick a love note — never repeats until all 365 have been shown */
+/** Pick the love note for today — based on Beijing time day-of-year */
 function pickLoveNote(): string {
-  if (typeof window === "undefined") return LOVE_NOTES[0];
-
-  const raw = localStorage.getItem(STORAGE_KEY);
-  let shown: number[] = raw ? JSON.parse(raw) : [];
-
-  // Find indices not yet shown
-  const allIndices = Array.from({ length: LOVE_NOTES.length }, (_, i) => i);
-  const unseen = allIndices.filter((i) => !shown.includes(i));
-
-  // If all have been shown, reset the cycle
-  if (unseen.length === 0) {
-    shown = [];
-  }
-
-  // Pick a random one from the unseen pool
-  const pool = unseen.length > 0 ? unseen : allIndices;
-  const pick = pool[Math.floor(Math.random() * pool.length)];
-
-  // Persist
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...shown, pick]));
-
-  return LOVE_NOTES[pick];
+  const day = getBeijingDayOfYear();
+  return LOVE_NOTES[(day - 1) % LOVE_NOTES.length];
 }
 
 const PASSWORD_HINT = "提示：密码是你的生日 (A B C D格式) ";
