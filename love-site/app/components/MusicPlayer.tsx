@@ -4,37 +4,54 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import LYRICS from "./lyrics";
 
 // ---- Config ----
-const CARD_W = 300;
-const CARD_H = 150;
-const PETAL_COUNT = 22;
-const DUST_COUNT = 100;
+const CARD_W = 320;
+const CARD_H = 160;
+const PARTICLE_N = 1000; // total particles in pool
+const FONT_SIZE = 36;
 
 // ---- Types ----
-interface Petal {
-  x: number; y: number;
-  size: number;
-  sy: number; sx: number;
-  rot: number; rs: number;
-  alpha: number;
-  sw: number; sp: number;
-}
-interface Dust {
-  x: number; y: number;
+interface Particle {
+  x: number; y: number;   // current
+  tx: number; ty: number; // target
   vx: number; vy: number;
-  size: number; alpha: number; hue: number;
+  size: number;
+  alpha: number;
+  hue: number;
+}
+
+// ---- Helpers ----
+// Sample text pixels from offscreen canvas, return display-canvas coords
+function sampleText(offCtx: CanvasRenderingContext2D, offW: number, offH: number, text: string) {
+  offCtx.clearRect(0, 0, offW, offH);
+  offCtx.font = `bold ${FONT_SIZE}px "SimHei","Heiti SC","Microsoft YaHei","PingFang SC",sans-serif`;
+  offCtx.fillStyle = "#fff";
+  offCtx.textAlign = "center";
+  offCtx.textBaseline = "middle";
+  offCtx.fillText(text, offW / 2, offH / 2);
+
+  const img = offCtx.getImageData(0, 0, offW, offH);
+  const pixels: { x: number; y: number }[] = [];
+  const step = 3; // sample density — higher = fewer pixels
+  for (let y = 0; y < offH; y += step) {
+    for (let x = 0; x < offW; x += step) {
+      if (img.data[(y * offW + x) * 4 + 3] > 60) {
+        pixels.push({ x: x / 2, y: y / 2 }); // scale back to display
+      }
+    }
+  }
+  return pixels;
 }
 
 export default function MusicPlayer() {
   const [playing, setPlaying] = useState(false);
-  const [idx, setIdx] = useState(0);
-  const [prevText, setPrevText] = useState("");
-  const [fade, setFade] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const petalsRef = useRef<Petal[]>([]);
-  const dustRef = useRef<Dust[]>([]);
+  const offscreenRef = useRef<HTMLCanvasElement | null>(null);
+  const particlesRef = useRef<Particle[]>([]);
   const animRef = useRef(0);
   const inited = useRef(false);
+  const lyricIdxRef = useRef(0);
+  const scatterRef = useRef(0); // scatter timer
 
   // ---- Audio ----
   const initAndPlay = useCallback(() => {
@@ -63,7 +80,7 @@ export default function MusicPlayer() {
     }
   }, [playing]);
 
-  // ---- Lyrics sync with fade transition ----
+  // ---- Lyrics sync → sets scatter on change ----
   useEffect(() => {
     const a = audioRef.current; if (!a) return;
     const tick = () => {
@@ -72,20 +89,16 @@ export default function MusicPlayer() {
       for (let j = LYRICS.length - 1; j >= 0; j--) {
         if (t >= LYRICS[j].time) { i = j; break; }
       }
-      setIdx((prev) => {
-        if (i !== prev) {
-          setPrevText(LYRICS[prev]?.text || "");
-          setFade(false);
-          requestAnimationFrame(() => requestAnimationFrame(() => setFade(true)));
-        }
-        return i;
-      });
+      if (i !== lyricIdxRef.current) {
+        lyricIdxRef.current = i;
+        scatterRef.current = 30; // ~0.5s scatter phase at 60fps
+      }
     };
     a.addEventListener("timeupdate", tick);
     return () => a.removeEventListener("timeupdate", tick);
   }, []);
 
-  // ---- Canvas: petals + stardust ----
+  // ---- Particle canvas: deconstruct / reconstruct / flow ----
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
@@ -93,66 +106,130 @@ export default function MusicPlayer() {
     const ctx = canvas.getContext("2d")!;
     ctx.scale(dpr, dpr);
 
-    // Init petals
-    petalsRef.current = Array.from({ length: PETAL_COUNT }, () => ({
-      x: Math.random() * CARD_W, y: Math.random() * CARD_H,
-      size: 4 + Math.random() * 7,
-      sy: 0.12 + Math.random() * 0.45,
-      sx: -0.2 + Math.random() * 0.4,
-      rot: Math.random() * 360,
-      rs: (Math.random() - 0.5) * 1.5,
-      alpha: 0.3 + Math.random() * 0.45,
-      sw: 0.2 + Math.random() * 0.5,
-      sp: Math.random() * Math.PI * 2,
+    // Offscreen canvas for text sampling
+    const off = document.createElement("canvas");
+    off.width = CARD_W * 2; off.height = CARD_H * 2;
+    offscreenRef.current = off;
+    const offCtx = off.getContext("2d")!;
+
+    // Init particles randomly across canvas
+    particlesRef.current = Array.from({ length: PARTICLE_N }, () => ({
+      x: Math.random() * CARD_W,
+      y: Math.random() * CARD_H,
+      tx: Math.random() * CARD_W,
+      ty: Math.random() * CARD_H,
+      vx: 0, vy: 0,
+      size: 0.6 + Math.random() * 1.8,
+      alpha: 0.35 + Math.random() * 0.65,
+      hue: 340 + Math.random() * 20, // pink range
     }));
 
-    // Init stardust
-    dustRef.current = Array.from({ length: DUST_COUNT }, () => ({
-      x: Math.random() * CARD_W, y: Math.random() * CARD_H,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: -(0.08 + Math.random() * 0.35),
-      size: 1 + Math.random() * 2.5,
-      alpha: 0.15 + Math.random() * 0.5,
-      hue: 335 + Math.random() * 25,
-    }));
+    let targetPositions: { x: number; y: number }[] = [];
+    let frame = 0;
 
-    let rot = 0;
+    const updateTargets = () => {
+      const text = LYRICS[lyricIdxRef.current]?.text || "";
+      if (!text) return;
+      targetPositions = sampleText(offCtx, off.width, off.height, text);
+      if (targetPositions.length === 0) return;
+
+      // Map particles to text positions (cycling if fewer particles than pixels)
+      const ps = particlesRef.current;
+      for (let i = 0; i < ps.length; i++) {
+        const tp = targetPositions[i % targetPositions.length];
+        // Add micro-jitter for organic feel
+        ps[i].tx = tp.x + (Math.random() - 0.5) * 1.5;
+        ps[i].ty = tp.y + (Math.random() - 0.5) * 1.5;
+      }
+    };
+
+    // Initial targets
+    updateTargets();
+
     const animate = () => {
       ctx.clearRect(0, 0, CARD_W, CARD_H);
-      rot += 0.004;
+      frame++;
 
-      // Stardust
-      for (const d of dustRef.current) {
-        d.x += d.vx + Math.sin(d.y * 0.02 + rot) * 0.15;
-        d.y += d.vy;
-        if (d.y < -15) { d.y = CARD_H + 15; d.x = Math.random() * CARD_W; }
-        if (d.x < -15) d.x = CARD_W + 15; if (d.x > CARD_W + 15) d.x = -15;
+      // Decrement scatter timer
+      if (scatterRef.current > 0) scatterRef.current--;
 
-        const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.size * 3);
-        g.addColorStop(0, `hsla(${d.hue},100%,85%,${d.alpha})`);
-        g.addColorStop(0.5, `hsla(${d.hue},90%,70%,${d.alpha * 0.35})`);
-        g.addColorStop(1, "transparent");
-        ctx.fillStyle = g; ctx.beginPath();
-        ctx.arc(d.x, d.y, d.size * 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.fillStyle = `hsla(${d.hue},100%,92%,${d.alpha})`;
-        ctx.beginPath(); ctx.arc(d.x, d.y, d.size * 0.5, 0, Math.PI * 2); ctx.fill();
+      // Update targets when scatter ends (reconstruct phase)
+      if (scatterRef.current === 15) {
+        // Just started scatter → expand particles outward
+        const ps = particlesRef.current;
+        for (const p of ps) {
+          const cx = CARD_W / 2, cy = CARD_H / 2;
+          p.tx = p.x + (p.x - cx) * 4 + (Math.random() - 0.5) * 100;
+          p.ty = p.y + (p.y - cy) * 4 + (Math.random() - 0.5) * 100;
+          p.vx = (Math.random() - 0.5) * 6;
+          p.vy = (Math.random() - 0.5) * 6;
+        }
+      } else if (scatterRef.current === 1) {
+        // Last scatter frame → reconstruct
+        updateTargets();
       }
 
-      // Petals
-      for (const p of petalsRef.current) {
-        p.y += p.sy; p.x += p.sx + Math.sin(p.y * 0.03 + p.sp) * p.sw;
-        p.rot += p.rs;
-        if (p.y > CARD_H + 20) { p.y = -15; p.x = Math.random() * CARD_W; }
-        if (p.x < -15) p.x = CARD_W + 15; if (p.x > CARD_W + 15) p.x = -15;
+      const inScatter = scatterRef.current > 0;
+      const ps = particlesRef.current;
 
-        ctx.save(); ctx.translate(p.x, p.y);
-        ctx.rotate((p.rot * Math.PI) / 180); ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = "#FFB6C1"; ctx.beginPath();
-        ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+      for (const p of ps) {
+        // Spring toward target
+        const dx = p.tx - p.x;
+        const dy = p.ty - p.y;
+        const spring = inScatter ? 0.015 : 0.06;
+        const damp = inScatter ? 0.88 : 0.84;
+        p.vx += dx * spring;
+        p.vy += dy * spring;
+        p.vx *= damp;
+        p.vy *= damp;
+        p.x += p.vx;
+        p.y += p.vy;
 
-        ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 0.3;
-        ctx.beginPath(); ctx.moveTo(0, -p.size * 0.35); ctx.lineTo(0, p.size * 0.35); ctx.stroke();
+        // Flow: gentle orbit around target in stable phase
+        if (!inScatter) {
+          p.x += Math.sin(p.y * 0.04 + frame * 0.03) * 0.25;
+          p.y += Math.cos(p.x * 0.04 + frame * 0.03) * 0.25;
+        }
+
+        // Clamp to card
+        if (p.x < -10) p.x = -10; if (p.x > CARD_W + 10) p.x = CARD_W + 10;
+        if (p.y < -10) p.y = -10; if (p.y > CARD_H + 10) p.y = CARD_H + 10;
+
+        // Draw glow + core
+        const alpha = p.alpha * (inScatter ? 0.6 : 1);
+        if (alpha < 0.02) continue;
+
+        // Outer glow
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+        grad.addColorStop(0, `hsla(${p.hue},100%,85%,${alpha})`);
+        grad.addColorStop(0.35, `hsla(${p.hue},95%,75%,${alpha * 0.5})`);
+        grad.addColorStop(0.7, `hsla(${p.hue},90%,65%,${alpha * 0.15})`);
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Core
+        ctx.fillStyle = `hsla(${p.hue},100%,90%,${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Cherry blossom petals
+      for (let i = 0; i < 12; i++) {
+        const py = ((frame * (0.4 + i * 0.08) + i * 73) % (CARD_H + 40)) - 20;
+        const px = ((i * 97 + Math.sin(frame * 0.02 + i) * 40) % (CARD_W + 40)) - 20;
+        const sz = 3 + (i % 4) * 2;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(frame * 0.008 + i);
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = "#FFB6C1";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, sz, sz * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
       }
 
@@ -161,8 +238,6 @@ export default function MusicPlayer() {
     animRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animRef.current);
   }, []);
-
-  const text = LYRICS[idx]?.text || "🎵";
 
   return (
     <>
@@ -173,46 +248,23 @@ export default function MusicPlayer() {
         <div style={{
           position:"relative", width:CARD_W, height:CARD_H,
           borderRadius:18, overflow:"hidden",
-          background:"linear-gradient(135deg, rgba(255,210,220,0.25) 0%, rgba(255,240,245,0.20) 40%, rgba(255,182,193,0.12) 100%)",
+          background:"linear-gradient(135deg, rgba(255,210,220,0.22) 0%, rgba(255,240,245,0.18) 40%, rgba(255,182,193,0.10) 100%)",
           backdropFilter:"blur(16px)",
           border:"1.5px solid rgba(181,101,118,0.28)",
           boxShadow:"0 8px 50px rgba(181,101,118,0.18), 0 0 80px rgba(255,182,193,0.06) inset",
         }}>
-          {/* Petal + stardust canvas */}
+          {/* Particle lyrics canvas */}
           <canvas ref={canvasRef} style={{ position:"absolute", inset:0, width:CARD_W, height:CARD_H }} />
 
           {/* Glossy highlight */}
-          <div style={{
-            position:"absolute", top:0, left:0, right:0, height:"40%",
-            background:"linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%)",
-            pointerEvents:"none",
-          }} />
-
-          {/* Lyrics text */}
-          <div style={{
-            position:"absolute", inset:0, display:"flex",
-            alignItems:"center", justifyContent:"center", padding:"0 20px",
-          }}>
-            <p style={{
-              fontFamily:'"Dancing Script","Noto Serif SC",serif',
-              fontSize:22, color:"#B56576",
-              textAlign:"center", lineHeight:1.5, margin:0,
-              textShadow:"0 1px 3px rgba(255,182,193,0.5), 0 0 15px rgba(255,107,138,0.25)",
-              opacity: fade ? 1 : 0,
-              transform: fade ? "translateY(0)" : "translateY(6px)",
-              transition:"opacity 0.45s ease, transform 0.45s ease",
-            } as React.CSSProperties}>
-              {text}
-            </p>
-          </div>
+          <div style={{ position:"absolute", top:0, left:0, right:0, height:"35%",
+            background:"linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%)",
+            pointerEvents:"none" }} />
 
           {/* Top label */}
-          <div style={{
-            position:"absolute", top:8, left:0, right:0,
-            textAlign:"center", fontSize:10,
-            color:"rgba(181,101,118,0.45)", letterSpacing:"0.25em",
-            fontFamily:"sans-serif",
-          }}>
+          <div style={{ position:"absolute", top:8, left:0, right:0, textAlign:"center",
+            fontSize:10, color:"rgba(181,101,118,0.4)", letterSpacing:"0.25em",
+            fontFamily:"sans-serif" }}>
             ♪ 实时歌词 ♪
           </div>
         </div>
