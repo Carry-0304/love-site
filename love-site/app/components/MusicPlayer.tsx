@@ -98,21 +98,22 @@ export default function MusicPlayer() {
           alignItems: "center",
           justifyContent: "center",
           borderRadius: 16,
-          background: "rgba(255,182,193,0.1)",
-          border: "1px solid rgba(181,101,118,0.25)",
-          boxShadow: "0 8px 40px rgba(181,101,118,0.15)",
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(12px)",
+          border: "2px solid rgba(181,101,118,0.4)",
+          boxShadow: "0 8px 40px rgba(181,101,118,0.25)",
           padding: "0 24px",
         }}
       >
         <p
           style={{
             fontFamily: '"Dancing Script", "Noto Serif SC", serif',
-            fontSize: 24,
-            color: "#FFB6C1",
+            fontSize: 22,
+            color: "#B56576",
             textAlign: "center" as const,
-            textShadow: "0 0 25px rgba(255,107,138,0.7), 0 0 50px rgba(255,107,138,0.3)",
             lineHeight: 1.5,
             margin: 0,
+            fontWeight: 500,
           }}
         >
           {LYRICS[idx]?.text || "🎵"}
