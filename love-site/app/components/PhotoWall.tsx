@@ -13,7 +13,7 @@ interface Photo {
 
 const photos: Photo[] = [
   { id: "1", src: "", caption: "第一次牵手的那天", date: "" },
-  { id: "2", src: "", caption: "你做的第一顿饭", date: "" },
+  { id: "2", src: "", caption: "和你一起做的第一顿饭", date: "" },
   { id: "3", src: "", caption: "一起看的那场电影", date: "" },
   { id: "4", src: "", caption: "圣诞节的拥抱", date: "" },
   { id: "5", src: "", caption: "新年的第一个吻", date: "" },

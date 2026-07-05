@@ -7,6 +7,15 @@ import { motion, AnimatePresence } from "framer-motion";
 // ---- CONFIG ----
 const GIRLFRIEND_NAME = "胡鑫玥";
 const PASSWORD = "1229"; // Her birthday MMDD format
+// Random love notes — one picked each unlock
+const LOVE_NOTES = [
+  "你是我所有温柔和浪漫的起点，也是终点。💗",
+  "遇见你之后，我的世界里连风都是甜的。🍬",
+  "我把所有的好运都攒起来，只为遇见你这件事。✨",
+  "你一笑，我的世界就亮了，比阳光还温暖。☀️",
+  "想和你一起看遍世间万物，从日出到星河。🌙",
+];
+
 const PASSWORD_HINT = "提示：密码是你的生日 (A B C D格式) ";
 // Voice message URLs — replace with your real audio files
 const VOICE_MESSAGES = [
@@ -205,12 +214,14 @@ export default function LoveMailbox() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [loveNote, setLoveNote] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (password === PASSWORD) {
       setIsUnlocked(true);
       setError("");
+      setLoveNote(LOVE_NOTES[Math.floor(Math.random() * LOVE_NOTES.length)]);
       setTimeout(() => setShowWelcome(true), 600);
     } else {
       setAttempts((a) => a + 1);
@@ -424,9 +435,35 @@ export default function LoveMailbox() {
                           animate={{ opacity: 1 }}
                           transition={{ delay: 3 }}
                         >
-                          —— 你的专属管理员
+                          —— 你的Only One---Mr.Qin
                         </motion.p>
                       </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* ──── Random Love Note ──── */}
+                <AnimatePresence>
+                  {loveNote && (
+                    <motion.div
+                      className="mb-8"
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.7, delay: 0.3, type: "spring", damping: 14 }}
+                    >
+                      <div className="bg-gradient-to-r from-rose-dried/8 via-rose-deep/12 to-rose-dried/8 rounded-2xl px-6 py-5 border border-rose-dried/15 backdrop-blur-sm">
+                        <p className="text-xs text-rose-dried/50 tracking-widest font-sans mb-2">
+                          💌 今日情话
+                        </p>
+                        <motion.p
+                          className="text-base md:text-lg font-script text-rose-deep/90 leading-relaxed italic"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.6, duration: 0.8 }}
+                        >
+                          "{loveNote}"
+                        </motion.p>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
