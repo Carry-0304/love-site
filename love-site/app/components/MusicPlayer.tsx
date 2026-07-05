@@ -91,17 +91,8 @@ export default function MusicPlayer() {
     verse1: "#FF6B8A",
     rising: "#E8A87C",
     chorus: "#FF4088",
-    bridge: "#F8C8DC",
+    bridge: "#de50e7",
     outro: "#FF8FAB",
-  };
-
-  const shadowByPhase: Record<Phase, string> = {
-    prelude: "0 0 8px rgba(255,143,171,0.2)",
-    verse1: "0 0 25px rgba(255,107,138,0.7), 0 0 50px rgba(255,80,120,0.35)",
-    rising: "0 0 20px rgba(232,168,124,0.5), 0 0 40px rgba(255,200,150,0.25)",
-    chorus: "0 0 30px rgba(255,64,136,0.8), 0 0 60px rgba(255,0,100,0.4)",
-    bridge: "0 0 15px rgba(248,200,220,0.5), 0 0 30px rgba(255,182,193,0.3)",
-    outro: "0 0 10px rgba(255,143,171,0.3)",
   };
 
   return (
@@ -111,28 +102,55 @@ export default function MusicPlayer() {
       {/* ──── Lyrics: transparent, borderless, text only ──── */}
       <div style={{ position: "fixed", bottom: 88, right: 20, zIndex: 9998 }}>
         <div style={{
-          position: "relative", width: 320, height: 160,
+          position: "relative", width: 340, height: 170,
           display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "0 16px",
+          padding: "0 20px",
         }}>
+          {/* Ambient glow behind text */}
+          <div style={{
+            position: "absolute", width: 280, height: 80,
+            borderRadius: "50%",
+            background: `radial-gradient(ellipse at center, ${hueByPhase[phase]}22 0%, transparent 70%)`,
+            filter: "blur(20px)",
+            animation: "ambientPulse 3s ease-in-out infinite",
+          }} />
           <p style={{
+            position: "relative",
             fontFamily: '"SimHei","Heiti SC","Microsoft YaHei","PingFang SC",sans-serif',
             fontWeight: 900,
             fontSize: phase === "prelude" ? 16 : phase === "chorus" ? 24 : phase === "outro" ? 20 : 22,
             fontStyle: phase === "chorus" ? "italic" : "normal",
-            color: hueByPhase[phase],
+            color: "transparent",
+            background: `linear-gradient(90deg, ${hueByPhase[phase]} 0%, ${hueByPhase[phase]} 40%, #fff 50%, ${hueByPhase[phase]} 60%, ${hueByPhase[phase]} 100%)`,
+            backgroundSize: "300% 100%",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
             textAlign: "center" as const,
             lineHeight: 1.4,
             margin: 0,
-            textShadow: shadowByPhase[phase],
+            letterSpacing: "0.08em",
+            filter: `drop-shadow(0 0 12px ${hueByPhase[phase]}88) drop-shadow(0 0 30px ${hueByPhase[phase]}44)`,
             opacity: textVisible ? 1 : 0,
             transform: textVisible ? "translateY(0)" : "translateY(12px)",
             transition: "opacity 0.5s ease-out, transform 0.5s ease-out",
+            animation: "sweepGlow 4s ease-in-out infinite",
           }}>
             {displayText || " "}
           </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes sweepGlow {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes ambientPulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.15); }
+        }
+      `}</style>
 
       {/* ──── Play button ──── */}
       <button onClick={toggle} style={{
