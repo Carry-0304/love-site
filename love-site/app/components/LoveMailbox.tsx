@@ -544,7 +544,7 @@ function TextRain({ isActive, name }: { isActive: boolean; name: string }) {
     const phrases = [
       "我爱你", "I ❤️ U", "想你", "宝贝", "honey",
       "❤️", "miss you", "forever", "我的唯一",
-      "love you", "你是光", "心动", "💕","QRK是爹", "hxy小宝贝儿"
+      "love you", "你是光", "心动", "💕","QRK的onlyone", "hxy小宝贝儿"
 
   ];
 
@@ -911,7 +911,7 @@ export default function LoveMailbox() {
                       >
                         <p className="text-sm text-rose-deep/80 leading-relaxed font-sans">
                           <Typewriter
-                            text={`嘿，你终于来了。\n\n这个网站只允许你一个人登录，密码是你在我心里的位置——那个最重要的日子。\n\n别人猜不到，也进不来。这是你的专属领地，我做的一切，都只想给你一个人看。\n\n所以，戴上耳机，听听我给你留的悄悄话吧。💕`}
+                            text={`嘿，你终于来了。\n\n这个网站只允许你一个人登录，密码是你在我心里的位置——那个最重要的日子。\n\n别人猜不到，也进不来。这是你的专属领地，我做的一切，都只想给你一个人看。\n\n💕`}
                             delay={28}
                           />
                         </p>
@@ -1028,8 +1028,8 @@ export default function LoveMailbox() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
                     >
-                      把音频文件放到 public/audio/ 目录下，<br />
-                      然后在这里设置 src 路径就可以播放啦 🎵
+                      好了，就到这。这封信收好，不许弄丢，<br />
+                      因为我不打算再写第二遍——除非你撒娇求我。
                     </motion.p>
                   )}
                 </div>
