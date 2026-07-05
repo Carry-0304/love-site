@@ -1028,8 +1028,7 @@ export default function LoveMailbox() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
                     >
-                      把音频文件放到 public/audio/ 目录下，<br />
-                      然后在这里设置 src 路径就可以播放啦 🎵
+                      好了，就到这。这封信收好，不许弄丢，因为我不打算再写第二遍——除非你撒娇求我
                     </motion.p>
                   )}
                 </div>

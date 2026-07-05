@@ -12,11 +12,11 @@ interface Photo {
 }
 
 const photos: Photo[] = [
-  { id: "1", src: "", caption: "第一次牵手的那天", date: "" },
-  { id: "2", src: "", caption: "和你一起做的第一顿饭", date: "" },
-  { id: "3", src: "", caption: "一起看的那场电影", date: "" },
-  { id: "4", src: "", caption: "圣诞节的拥抱", date: "" },
-  { id: "5", src: "", caption: "新年的第一个吻", date: "" },
+  { id: "1", src: "", caption: "奇怪的默契游戏", date: "" },
+  { id: "2", src: "", caption: "一起逛超市", date: "" },
+  { id: "3", src: "", caption: "游乐场的尖叫", date: "" },
+  { id: "4", src: "", caption: "模仿对方的口头禅", date: "" },
+  { id: "5", src: "", caption: "一起出去旅游", date: "" },
   { id: "6", src: "", caption: "你生日那天的惊喜", date: "" },
 ];
 // -------------------------------------------
@@ -36,7 +36,7 @@ export default function PhotoWall() {
         transition={{ duration: 0.8 }}
       >
         <h2 className="text-4xl md:text-5xl font-script text-gradient-love mb-3">
-          拍立得回忆墙
+          回忆墙
         </h2>
         <p className="text-sm text-rose-dried/60 tracking-widest font-sans">
           定格每一个有你的瞬间
