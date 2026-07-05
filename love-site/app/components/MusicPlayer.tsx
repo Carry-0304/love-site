@@ -1,4 +1,4 @@
-"use client";
+1"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import LYRICS from "./lyrics";
@@ -91,7 +91,7 @@ export default function MusicPlayer() {
     verse1: "#FF6B8A",
     rising: "#E8A87C",
     chorus: "#FF4088",
-    bridge: "#FFF0F5",
+    bridge: "#F8C8DC",
     outro: "#FF8FAB",
   };
 
@@ -100,7 +100,7 @@ export default function MusicPlayer() {
     verse1: "0 0 25px rgba(255,107,138,0.7), 0 0 50px rgba(255,80,120,0.35)",
     rising: "0 0 20px rgba(232,168,124,0.5), 0 0 40px rgba(255,200,150,0.25)",
     chorus: "0 0 30px rgba(255,64,136,0.8), 0 0 60px rgba(255,0,100,0.4)",
-    bridge: "0 0 15px rgba(255,255,255,0.4), 0 0 30px rgba(200,200,220,0.2)",
+    bridge: "0 0 15px rgba(248,200,220,0.5), 0 0 30px rgba(255,182,193,0.3)",
     outro: "0 0 10px rgba(255,143,171,0.3)",
   };
 
