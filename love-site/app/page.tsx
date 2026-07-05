@@ -11,7 +11,7 @@ import CherryBlossoms from "./components/CherryBlossoms";
 import FloatingParticles from "./components/FloatingParticles";
 import StarTrail from "./components/StarTrail";
 import ToastNotification from "./components/ToastNotification";
-import BackgroundMusic from "./components/BackgroundMusic";
+import MusicPlayer from "./components/MusicPlayer";
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -39,8 +39,8 @@ export default function Home() {
           <FloatingParticles />
           <CherryBlossoms />
 
-          {/* --- Background music --- */}
-          <BackgroundMusic src="/love-site/audio/bg-music.mp3" />
+          {/* --- Background music + lyrics --- */}
+          <MusicPlayer />
 
           {/* --- Cursor star trail (desktop only) --- */}
           <StarTrail />
