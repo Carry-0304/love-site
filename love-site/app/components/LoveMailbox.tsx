@@ -503,11 +503,11 @@ function pickLoveNote(): string {
 }
 
 const PASSWORD_HINT = "提示：密码是你的生日 (A B C D格式) ";
-// Voice message URLs — replace with your real audio files
+// Voice message URLs — 把录音文件放到 public/voice/ 目录下
 const VOICE_MESSAGES = [
-  { id: "1", title: "早安，宝贝 ☀️", src: "", duration: "0:15" },
-  { id: "2", title: "想你的时候 🌙", src: "", duration: "0:20" },
-  { id: "3", title: "睡前悄悄话 💤", src: "", duration: "0:18" },
+  { id: "1", title: "早安，宝贝 ☀️", src: "/love-site/voice/good-morning.mp3", duration: "0:15" },
+  { id: "2", title: "想你的时候 🌙", src: "/love-site/voice/missing-you.mp3", duration: "0:20" },
+  { id: "3", title: "睡前悄悄话 💤", src: "/love-site/voice/good-night.mp3", duration: "0:18" },
 ];
 // -----------------
 
@@ -701,6 +701,55 @@ export default function LoveMailbox() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [loveNote, setLoveNote] = useState("");
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.pause();
+        voiceAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleVoiceClick = (msg: typeof VOICE_MESSAGES[number]) => {
+    if (!msg.src) return;
+
+    // If same message is playing, pause it
+    if (playingId === msg.id) {
+      voiceAudioRef.current?.pause();
+      setPlayingId(null);
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current = null;
+    }
+
+    // Create and play new audio
+    const audio = new Audio(msg.src);
+    audio.play().then(() => {
+      setPlayingId(msg.id);
+    }).catch((err) => {
+      console.warn("Voice message play failed:", err.message);
+      setPlayingId(null);
+    });
+
+    audio.addEventListener("ended", () => {
+      setPlayingId(null);
+      voiceAudioRef.current = null;
+    });
+
+    audio.addEventListener("error", () => {
+      setPlayingId(null);
+      voiceAudioRef.current = null;
+    });
+
+    voiceAudioRef.current = audio;
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -970,12 +1019,7 @@ export default function LoveMailbox() {
                       }`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        if (msg.src) {
-                          setPlayingId(playingId === msg.id ? null : msg.id);
-                          // TODO: integrate real audio playback
-                        }
-                      }}
+                      onClick={() => handleVoiceClick(msg)}
                     >
                       {/* Play button */}
                       <motion.div
