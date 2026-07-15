@@ -506,8 +506,8 @@ const PASSWORD_HINT = "提示：密码是你的生日 (A B C D格式) ";
 // Voice message URLs — 把录音文件放到 public/voice/ 目录下
 const VOICE_MESSAGES = [
   { id: "1", title: "早安，宝贝 ☀️", src: "/love-site/voice/good-morning.mp3", duration: "0:15" },
-  { id: "2", title: "想你的时候 🌙", src: "/love-site/voice/missing-you.mp3", duration: "0:20" },
-  { id: "3", title: "睡前悄悄话 💤", src: "/love-site/voice/good-night.mp3", duration: "0:18" },
+  { id: "2", title: "想你的时候 🌙", src: "/love-site/voice/missing-you.mp3", duration: "0:13" },
+  { id: "3", title: "睡前悄悄话 💤", src: "/love-site/voice/good-night.mp3", duration: "0:10" },
 ];
 // -----------------
 
