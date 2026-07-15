@@ -701,54 +701,47 @@ export default function LoveMailbox() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [loveNote, setLoveNote] = useState("");
-  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const voiceAudioRef = useRef<HTMLAudioElement>(null);
 
-  // Clean up audio on unmount
+  // Bind audio events (ended, error) to the DOM element
   useEffect(() => {
+    const audio = voiceAudioRef.current;
+    if (!audio) return;
+
+    const handleEnded = () => setPlayingId(null);
+    const handleError = () => {
+      console.warn("Voice audio failed to load");
+      setPlayingId(null);
+    };
+
+    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("error", handleError);
     return () => {
-      if (voiceAudioRef.current) {
-        voiceAudioRef.current.pause();
-        voiceAudioRef.current = null;
-      }
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
     };
   }, []);
 
   const handleVoiceClick = (msg: typeof VOICE_MESSAGES[number]) => {
-    if (!msg.src) return;
+    const audio = voiceAudioRef.current;
+    if (!audio || !msg.src) return;
 
     // If same message is playing, pause it
     if (playingId === msg.id) {
-      voiceAudioRef.current?.pause();
+      audio.pause();
       setPlayingId(null);
       return;
     }
 
-    // Stop any currently playing audio
-    if (voiceAudioRef.current) {
-      voiceAudioRef.current.pause();
-      voiceAudioRef.current = null;
-    }
-
-    // Create and play new audio
-    const audio = new Audio(msg.src);
+    // Switch to new voice message and play
+    audio.src = msg.src;
+    audio.load();
     audio.play().then(() => {
       setPlayingId(msg.id);
     }).catch((err) => {
       console.warn("Voice message play failed:", err.message);
       setPlayingId(null);
     });
-
-    audio.addEventListener("ended", () => {
-      setPlayingId(null);
-      voiceAudioRef.current = null;
-    });
-
-    audio.addEventListener("error", () => {
-      setPlayingId(null);
-      voiceAudioRef.current = null;
-    });
-
-    voiceAudioRef.current = audio;
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -911,6 +904,9 @@ export default function LoveMailbox() {
             >
               {/* Text Rain background */}
               <TextRain isActive={isUnlocked} name={GIRLFRIEND_NAME} />
+
+              {/* Hidden audio element for voice messages */}
+              <audio ref={voiceAudioRef} preload="auto" style={{ display: "none" }} />
 
               {/* Content */}
               <div className="relative z-10">
